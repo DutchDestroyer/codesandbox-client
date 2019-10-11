@@ -8,8 +8,8 @@ import { inject, observer, clone } from 'app/componentConnectors';
 import getTemplateDefinition from '@codesandbox/common/lib/templates';
 import SplitPane from 'react-split-pane';
 
-import { CodeEditor } from 'app/components/CodeEditor';
 import { DevTools } from 'app/components/Preview/DevTools';
+import EditorType from 'app/components/EditorType';
 
 import { Preview } from './Preview';
 import preventGestureScroll, { removeListener } from './prevent-gesture-scroll';
@@ -387,36 +387,13 @@ class EditorPreview extends React.Component {
 
   render() {
     const { signals, store } = this.props;
-    const { currentModule } = store.editor;
     const notSynced = !store.editor.isAllModulesSynced;
     const sandbox = store.editor.currentSandbox;
     const { preferences } = store;
-    const { currentTab } = store.editor;
 
     const windowVisible = store.editor.previewWindowVisible;
 
-    const { width: editorWidth, height: editorHeight } = this.state;
-
     const template = getTemplateDefinition(sandbox.template);
-
-    const isReadOnly = () => {
-      if (store.live.isLive) {
-        if (
-          !store.live.isCurrentEditor ||
-          (store.live.roomInfo && store.live.roomInfo.ownerIds.length === 0)
-        ) {
-          return true;
-        }
-      }
-
-      if (template.isServer) {
-        if (!store.isLoggedIn || store.server.status !== 'connected') {
-          return true;
-        }
-      }
-
-      return false;
-    };
 
     const views = store.editor.devToolTabs;
     const currentPosition = this.props.store.editor.currentDevToolsPosition;
@@ -510,51 +487,12 @@ class EditorPreview extends React.Component {
               }}
             >
               {!store.preferences.settings.experimentVSCode && <Tabs />}
-              <CodeEditor
-                style={{
-                  top: store.preferences.settings.experimentVSCode ? 0 : 35,
-                }}
-                onInitialized={this.onInitialized}
-                sandbox={sandbox}
-                currentTab={currentTab}
-                currentModule={currentModule}
-                isModuleSynced={shortId =>
-                  !store.editor.changedModuleShortids.includes(shortId)
-                }
-                width={editorWidth}
-                height={editorHeight}
-                settings={settings(store)}
-                sendTransforms={this.sendTransforms}
-                readOnly={isReadOnly()}
-                isLive={store.live.isLive}
-                onCodeReceived={signals.live.onCodeReceived}
-                onSelectionChanged={signals.live.onSelectionChanged}
-                onNpmDependencyAdded={name => {
-                  if (sandbox.owned) {
-                    signals.editor.addNpmDependency({ name, isDev: true });
-                  }
-                }}
-                onChange={(code, moduleShortid) =>
-                  signals.editor.codeChanged({
-                    code,
-                    moduleShortid: moduleShortid || currentModule.shortid,
-                    noLive: true,
-                  })
-                }
-                onModuleChange={moduleId =>
-                  signals.editor.moduleSelected({ id: moduleId })
-                }
-                onModuleStateMismatch={signals.live.onModuleStateMismatch}
-                onSave={code =>
-                  signals.editor.codeSaved({
-                    code,
-                    moduleShortid: currentModule.shortid,
-                  })
-                }
-                tsconfig={
-                  store.editor.parsedConfigurations.typescript &&
-                  store.editor.parsedConfigurations.typescript.parsed
-                }
+              <EditorType
+                signals={signals}
+                store={store}
+                isCodeEditor={false}
+                width={this.state.width}
+                height={this.state.height}
               />
             </div>
 
