@@ -64,6 +64,7 @@
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^1.13.0",
     "@typescript-eslint/parser": "^1.13.0",
+    "cerebral": "^5.2.0",
     "opencollective": "^1.0.3"
   },
   "devDependencies": {
